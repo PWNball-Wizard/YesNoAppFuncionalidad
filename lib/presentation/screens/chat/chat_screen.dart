@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:yes_no_app/domain/entities/message.dart';
+import 'package:yes_no_app/presentation/providers/chat_provider.dart';
 import 'package:yes_no_app/presentation/widgets/chat/her_message_bubble.dart';
 import 'package:yes_no_app/presentation/widgets/chat/my_message_bubble.dart';
 import 'package:yes_no_app/presentation/widgets/shared/message_field_box.dart';
@@ -55,21 +58,34 @@ class _ChatView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final chatProvider = context.watch<ChatProvider>();
+
     return SafeArea(
       child: Column(
         children: [
-          Expanded(child: ListView.builder(
+          Expanded(
+              child: ListView.builder(
+            controller: chatProvider.scrollController,
+            itemCount: chatProvider.messageList.length,
             itemBuilder: (context, index) {
-              return (index % 2 == 0)
+              final message = chatProvider.messageList[index];
+              return message.fromWho == FromWho.mine
+                  ? MyMessageBubble(message)
+                  : HerMessageBubble(message);
+              /* return (index % 2 == 0)
                   ? const MyMessageBubble()
-                  : const HerMessageBubble();
+                  : const HerMessageBubble(); */
               /* ListTile(
                 title: Text("Hola"),
               ); */
             },
           )),
           /* Container(color: Colors.red) */
-          const MessageFieldBox(),
+          MessageFieldBox(
+            onValueSend: (value) {
+              chatProvider.addMessage(value.toString());
+            },
+          ),
         ],
       ),
     );
